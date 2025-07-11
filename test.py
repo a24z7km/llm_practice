@@ -73,6 +73,31 @@ else:
 
         mail_headers, mail_body, mail_urls = extract_email_info(file_path)
 
+        # --- ここからドメイン検索リンク表示処理 ---
+        def extract_domain(email_address):
+            """メールアドレスからドメイン部分だけを抽出"""
+            if not email_address or "@" not in email_address:
+                return None
+            return email_address.split("@")[-1].strip(">").strip()
+
+        from_domain = extract_domain(mail_headers.get("From"))
+        return_path_domain = extract_domain(mail_headers.get("Return-Path"))
+        search_urls = []
+        if from_domain:
+            search_urls.append(f"Fromドメイン検索: https://mgt.jp/#{from_domain}")
+        if return_path_domain and return_path_domain != from_domain:
+            search_urls.append(f"Return-Pathドメイン検索: https://mgt.jp/#{return_path_domain}")
+
+        if search_urls:
+            print("\n--- ドメイン情報検索リンク ---")
+            for url in search_urls:
+                print(url)
+            print("-----------------------------\n")
+        # --- ここまでドメイン検索リンク表示処理 ---
+
+        # ドメイン検索リンクをプロンプト用に文字列化
+        domain_links_text = "\n".join(search_urls) if search_urls else "該当なし"
+
         if mail_body:
             prompt = f"""
 あなたは、フィッシングメールの検知を専門とする優秀なサイバーセキュリティアナリストです。
